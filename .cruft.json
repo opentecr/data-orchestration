@@ -1,0 +1,27 @@
+{
+  "template": "https://github.com/Midnighter/cookiecutter-python-package",
+  "commit": "1abeb4e5e3f8528f750a7b448904677591c86e41",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "openTECR Community",
+      "email": "moritz.beber@igdore.org",
+      "dev_platform": "GitHub",
+      "__dev_platform_url": "https://github.com",
+      "dev_platform_username": "opentecr",
+      "project_name": "Data Orchestration",
+      "project_slug": "data-orchestration",
+      "project_module": "data_orchestration",
+      "project_short_description": "Transform and enrich the raw, curated openTECR data to produce suitable output formats.",
+      "license": "Apache-2.0",
+      "release_date": "2024-07-11",
+      "year": "2024",
+      "_extensions": [
+        "jinja2_time.TimeExtension",
+        "jinja2_strcase.StrcaseExtension"
+      ],
+      "_template": "https://github.com/Midnighter/cookiecutter-python-package"
+    }
+  },
+  "directory": null
+}
