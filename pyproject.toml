@@ -61,7 +61,6 @@ Homepage = "https://github.com/opentecr/data-orchestration"
 dev = [
     "hatch",
     "pre-commit",
-    "dagster-webserver ~=1.7",
 ]
 
 ################################################################################
@@ -171,6 +170,18 @@ check-yield-types = false
 ################################################################################
 # Hatch Environments
 ################################################################################
+
+[tool.hatch.envs.dagster]
+description = """Run a local dagster deployment and webserver."""
+dependencies = [
+    "dagster-webserver ~=1.7",
+]
+
+[tool.hatch.envs.dagster.env-vars]
+DAGSTER_HOME = "{root}/work"
+
+[tool.hatch.envs.dagster.scripts]
+run = "dagster dev"
 
 [tool.hatch.envs.style]
 description = """Check the style of the codebase."""
