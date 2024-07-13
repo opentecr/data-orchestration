@@ -15,12 +15,21 @@
 
 """Provide top level symbols."""
 
-
 from dagster import Definitions, load_assets_from_modules
 
 from . import assets
+from .assets import GoogleSheetsResource, SingleSheetResource
 
+sheets = GoogleSheetsResource(
+    spreadsheet_id="1jLIxEXVzE2SAzIB0UxBfcFoHrzjzf9euB6ART2VDE8c",
+)
 
 defs = Definitions(
     assets=load_assets_from_modules([assets], group_name="openTECR"),
+    resources={
+        "metadata_resource": SingleSheetResource(sheets=sheets, gid="652907302"),
+        "references_resource": SingleSheetResource(sheets=sheets, gid="81596307"),
+        "data_resource": SingleSheetResource(sheets=sheets, gid="2123069643"),
+        "comments_resource": SingleSheetResource(sheets=sheets, gid="1475422539"),
+    },
 )
