@@ -15,18 +15,35 @@
 
 """Provide dagster assets."""
 
-from typing import Annotated
+from typing import Annotated, Any
 from urllib.parse import urlencode
 
 import pandas as pd
-from dagster import ConfigurableResource, asset
+from dagster import (
+    ConfigurableResource,
+    MetadataValue,
+    Output,
+    asset,
+)
+from pandera.typing import DataFrame
 from pydantic import Field
+
+from .types import (
+    OpenTECRComment,
+    OpenTECRCommentDagsterType,
+    OpenTECREntry,
+    OpenTECREntryDagsterType,
+    OpenTECRMetadata,
+    OpenTECRMetadataDagsterType,
+    OpenTECRReference,
+    OpenTECRReferenceDagsterType,
+)
 
 
 class GoogleSheetsResource(ConfigurableResource):
     """Define a Google Sheets resource."""
 
-    url: Annotated[
+    base_url: Annotated[
         str,
         Field(
             default="https://docs.google.com/spreadsheets/d/",
@@ -48,34 +65,84 @@ class SingleSheetResource(ConfigurableResource):
     sheets: GoogleSheetsResource
     gid: Annotated[str, Field(default=..., description="The individual sheet GID.")]
 
+    @property
+    def url(self) -> str:
+        """Return the URL of the Google sheet."""
+        params = urlencode({"gid": self.gid, "format": "xlsx"})
+        return f"{self.sheets.base_url}{self.sheets.spreadsheet_id}/export?{params}"
+
     def fetch(self) -> pd.DataFrame:
         """Fetch a single Google sheet."""
-        params = urlencode({"gid": self.gid, "format": "xlsx"})
-        return pd.read_excel(
-            f"{self.sheets.url}{self.sheets.spreadsheet_id}/export?{params}",
-            engine="openpyxl",
-        )
+        return pd.read_excel(self.url, engine="openpyxl")
+
+
+def table_metadata(df: DataFrame) -> dict[str, Any]:
+    """Return the metadata of a table."""
+    # The conversion to `object` type and `fillna` are workarounds for
+    #  https://github.com/astanin/python-tabulate/issues/316.
+    return {
+        "dagster/row_count": len(df),
+        "dagster/column_count": len(df.columns),
+        "head": MetadataValue.md(df.head(n=5).astype(object).fillna("").to_markdown()),
+        "tail": MetadataValue.md(df.tail(n=5).astype(object).fillna("").to_markdown()),
+    }
 
 
 @asset
-def opentecr_metadata(metadata_resource: SingleSheetResource):
+def opentecr_metadata(
+    metadata_resource: SingleSheetResource,
+) -> Output[OpenTECRMetadataDagsterType]:
     """Define the openTECR metadata asset."""
-    return metadata_resource.fetch()
+    result = OpenTECRMetadata.validate(metadata_resource.fetch())
+    return Output(
+        result,
+        metadata={
+            **table_metadata(result),
+            "source": MetadataValue.url(metadata_resource.url),
+        },
+    )
 
 
 @asset
-def opentecr_references(references_resource: SingleSheetResource):
+def opentecr_references(
+    references_resource: SingleSheetResource,
+) -> Output[OpenTECRReferenceDagsterType]:
     """Define the openTECR references asset."""
-    return references_resource.fetch()
+    result = OpenTECRReference.validate(references_resource.fetch())
+    return Output(
+        result,
+        metadata={
+            **table_metadata(result),
+            "source": MetadataValue.url(references_resource.url),
+        },
+    )
 
 
 @asset
-def opentecr_data(data_resource: SingleSheetResource):
+def opentecr_data(
+    data_resource: SingleSheetResource,
+) -> Output[OpenTECREntryDagsterType]:
     """Define the openTECR data asset."""
-    return data_resource.fetch()
+    result = OpenTECREntry.validate(data_resource.fetch())
+    return Output(
+        result,
+        metadata={
+            **table_metadata(result),
+            "source": MetadataValue.url(data_resource.url),
+        },
+    )
 
 
 @asset
-def opentecr_comments(comments_resource: SingleSheetResource):
+def opentecr_comments(
+    comments_resource: SingleSheetResource,
+) -> Output[OpenTECRCommentDagsterType]:
     """Define the openTECR comments asset."""
-    return comments_resource.fetch()
+    result = OpenTECRComment.validate(comments_resource.fetch())
+    return Output(
+        result,
+        metadata={
+            **table_metadata(result),
+            "source": MetadataValue.url(comments_resource.url),
+        },
+    )
