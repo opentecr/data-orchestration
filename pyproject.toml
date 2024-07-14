@@ -210,10 +210,11 @@ check = ["safety check --full-report"]
 description = """Check the static types of the codebase."""
 dependencies = [
     "mypy",
+    "pandas-stubs",
 ]
 
 [tool.hatch.envs.types.scripts]
-check = ["mypy src/data_orchestration"]
+check = "mypy src/data_orchestration"
 
 [tool.hatch.envs.docs]
 description = """Build or serve the documentation."""
@@ -227,23 +228,8 @@ extra-dependencies = [
 build = "mkdocs build --clean --strict"
 serve = "mkdocs serve"
 
-[tool.hatch.envs.install]
-description = """Test the installation the package."""
-dependencies = [
-    "pip",
-    "twine",
-]
-
-[tool.hatch.envs.install.scripts]
-check = [
-    "pip check",
-    "hatch build",
-    "twine check dist/*",
-]
-
 [tool.hatch.envs.test]
 description = """Run the test suite."""
-dev-mode = false
 extra-dependencies = [
     "pytest",
     "pytest-cov",
@@ -256,8 +242,4 @@ extra-dependencies = [
 python = ["3.12"]
 
 [tool.hatch.envs.test.scripts]
-# TODO: Decide how to handle changing dependencies.
-run = [
-    "python -I -m pip install --no-deps --force-reinstall .",
-    "pytest --cov=data_orchestration --cov-report=term-missing {args}",
-]
+run = "pytest --cov=data_orchestration --cov-report=term-missing {args}"
