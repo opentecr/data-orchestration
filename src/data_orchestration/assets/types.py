@@ -32,12 +32,9 @@ class BaseModel(pa.DataFrameModel):
         strict = "filter"
 
 
-class OpenTECRTableReference(BaseModel):
+class OpenTECRUniqueTableKey(BaseModel):
     """Define a unique reference to a table in a publication."""
 
-    reference_code: Series[str] = pa.Field(
-        description="Code used to reference the publication source.",
-    )
     part: Series[int] = pa.Field(description="Part of the publication referenced.")
     page: Series[int] = pa.Field(description="Page of the publication referenced.")
     column: Series[int] = pa.Field(
@@ -53,7 +50,6 @@ class OpenTECRTableReference(BaseModel):
         """Configure the reference model."""
 
         unique: ClassVar[list[str]] = [
-            "reference_code",
             "part",
             "page",
             "col l/r",
@@ -61,43 +57,51 @@ class OpenTECRTableReference(BaseModel):
         ]
 
 
-class OpenTECRMetadata(OpenTECRTableReference):
+class OpenTECRTableMetadata(OpenTECRUniqueTableKey):
     """Define the expected shape of the metadata sheet."""
 
     reaction: Series[str] = pa.Field(
         description="The (possibly corrected) reaction description.",
-        alias="Reaction",
     )
-    curator_comment: Series[str] = pa.Field(
-        description="Comment by the curator.",
+    reference_code: Series[str] = pa.Field(
+        description="Code used to reference the publication source.",
+    )
+    secondary_comment: Series[str] = pa.Field(
+        description="Comment added by secondary curator.",
         alias="curator comment",
         nullable=True,
         coerce=True,
     )
+    method: Series[str] = pa.Field(
+        description="The experimental methodology used to quantify the apparent "
+        "equilibrium constant [K'].",
+        nullable=True,
+    )
+    buffer: Series[str] = pa.Field(
+        description="The buffer added to the aqueous solution.",
+        nullable=True,
+    )
 
 
-class OpenTECRComment(OpenTECRTableReference):
+class OpenTECRTableComment(OpenTECRUniqueTableKey):
     """Define the expected shape of the comments sheet."""
 
-    is_spellchecked: Series[Int64Dtype] = pa.Field(
+    was_spellchecked: Series[Int64Dtype] = pa.Field(
         description="Whether the table comment was manually spellchecked.",
         alias="manually spellchecked",
         nullable=True,
         coerce=True,
     )
-    comment: Series[str] = pa.Field(
-        description="Comment by the curator.",
+    primary_comment: Series[str] = pa.Field(
+        description="Comment from the primary curation.",
+        alias="comment",
         nullable=True,
     )
 
 
-class OpenTECREntry(BaseModel):
+class OpenTECRData(BaseModel):
     """Define the expected shape of the data entry sheet."""
 
-    reference_code: Series[str] = pa.Field(
-        description="Code used to reference the publication source.",
-        nullable=True,
-    )
     part: Series[Int64Dtype] = pa.Field(
         description="Part of the publication referenced.",
         nullable=True,
@@ -108,9 +112,8 @@ class OpenTECREntry(BaseModel):
         nullable=True,
         coerce=True,
     )
-    column: Series[str] = pa.Field(
-        description="Column on the page (left=1 and right=2). Sometimes also contains "
-        "values `l` or `r`.",
+    column: Series[Int64Dtype] = pa.Field(
+        description="Column on the page (left=1 and right=2).",
         alias="col l/r",
         nullable=True,
         coerce=True,
@@ -123,23 +126,13 @@ class OpenTECREntry(BaseModel):
     )
     entry_index: Series[str] = pa.Field(
         description="The entry in the table from the top starting at 1. May contain "
-        "text comments.",
+        "text comments which indicates rows to drop.",
         alias="entry nr",
         nullable=True,
         coerce=True,
     )
     id: Series[str] = pa.Field(
         description="Unique identifier (W3ID) for the entry, if any.",
-        nullable=True,
-    )
-    ec_number: Series[str] = pa.Field(
-        description="Enzyme commission (EC) number of the reaction.",
-        alias="EC",
-        nullable=True,
-    )
-    reaction: Series[str] = pa.Field(
-        description="The (possibly corrected) reaction description.",
-        alias="description",
         nullable=True,
     )
     temperature: Series[float] = pa.Field(
@@ -193,7 +186,7 @@ class OpenTECRReference(BaseModel):
     )
 
 
-OpenTECRMetadataDagsterType = pandera_schema_to_dagster_type(OpenTECRMetadata)
-OpenTECRCommentDagsterType = pandera_schema_to_dagster_type(OpenTECRComment)
-OpenTECREntryDagsterType = pandera_schema_to_dagster_type(OpenTECREntry)
-OpenTECRReferenceDagsterType = pandera_schema_to_dagster_type(OpenTECRReference)
+OpenTECRTableMetadataDT = pandera_schema_to_dagster_type(OpenTECRTableMetadata)
+OpenTECRTableCommentDT = pandera_schema_to_dagster_type(OpenTECRTableComment)
+OpenTECRDataDT = pandera_schema_to_dagster_type(OpenTECRData)
+OpenTECRReferenceDT = pandera_schema_to_dagster_type(OpenTECRReference)

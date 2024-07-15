@@ -29,14 +29,14 @@ from pandera.typing import DataFrame
 from pydantic import Field
 
 from .types import (
-    OpenTECRComment,
-    OpenTECRCommentDagsterType,
-    OpenTECREntry,
-    OpenTECREntryDagsterType,
-    OpenTECRMetadata,
-    OpenTECRMetadataDagsterType,
+    OpenTECRData,
+    OpenTECRDataDT,
     OpenTECRReference,
-    OpenTECRReferenceDagsterType,
+    OpenTECRReferenceDT,
+    OpenTECRTableComment,
+    OpenTECRTableCommentDT,
+    OpenTECRTableMetadata,
+    OpenTECRTableMetadataDT,
 )
 
 
@@ -91,9 +91,9 @@ def table_metadata(df: DataFrame) -> dict[str, Any]:
 @asset
 def opentecr_metadata(
     metadata_resource: SingleSheetResource,
-) -> Output[OpenTECRMetadataDagsterType]:
+) -> Output[OpenTECRTableMetadataDT]:
     """Define the openTECR metadata asset."""
-    result = OpenTECRMetadata.validate(metadata_resource.fetch())
+    result = OpenTECRTableMetadata.validate(metadata_resource.fetch())
     return Output(
         result,
         metadata={
@@ -106,7 +106,7 @@ def opentecr_metadata(
 @asset
 def opentecr_references(
     references_resource: SingleSheetResource,
-) -> Output[OpenTECRReferenceDagsterType]:
+) -> Output[OpenTECRReferenceDT]:
     """Define the openTECR references asset."""
     result = OpenTECRReference.validate(references_resource.fetch())
     return Output(
@@ -121,9 +121,9 @@ def opentecr_references(
 @asset
 def opentecr_data(
     data_resource: SingleSheetResource,
-) -> Output[OpenTECREntryDagsterType]:
+) -> Output[OpenTECRDataDT]:
     """Define the openTECR data asset."""
-    result = OpenTECREntry.validate(data_resource.fetch())
+    result = OpenTECRData.validate(data_resource.fetch())
     return Output(
         result,
         metadata={
@@ -136,9 +136,9 @@ def opentecr_data(
 @asset
 def opentecr_comments(
     comments_resource: SingleSheetResource,
-) -> Output[OpenTECRCommentDagsterType]:
+) -> Output[OpenTECRTableCommentDT]:
     """Define the openTECR comments asset."""
-    result = OpenTECRComment.validate(comments_resource.fetch())
+    result = OpenTECRTableComment.validate(comments_resource.fetch())
     return Output(
         result,
         metadata={
