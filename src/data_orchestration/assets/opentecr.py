@@ -88,7 +88,7 @@ def table_metadata(df: DataFrame) -> dict[str, Any]:
     }
 
 
-@asset
+@asset(io_manager_key="pandas_io_manager")
 def opentecr_metadata(
     metadata_resource: SingleSheetResource,
 ) -> Output[OpenTECRTableMetadataDT]:
@@ -103,7 +103,7 @@ def opentecr_metadata(
     )
 
 
-@asset
+@asset(io_manager_key="pandas_io_manager")
 def opentecr_references(
     references_resource: SingleSheetResource,
 ) -> Output[OpenTECRReferenceDT]:
@@ -118,7 +118,7 @@ def opentecr_references(
     )
 
 
-@asset
+@asset(io_manager_key="pandas_io_manager")
 def opentecr_data(
     data_resource: SingleSheetResource,
 ) -> Output[OpenTECRDataDT]:
@@ -133,7 +133,7 @@ def opentecr_data(
     )
 
 
-@asset
+@asset(io_manager_key="pandas_io_manager")
 def opentecr_comments(
     comments_resource: SingleSheetResource,
 ) -> Output[OpenTECRTableCommentDT]:

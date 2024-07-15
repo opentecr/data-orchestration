@@ -15,10 +15,14 @@
 
 """Provide top level symbols."""
 
+import os
+
 from dagster import Definitions, load_assets_from_modules
+from upath import UPath
 
 from . import assets
 from .assets import GoogleSheetsResource, SingleSheetResource
+from .io import PandasArrowIOManager
 
 sheets = GoogleSheetsResource(
     spreadsheet_id="1jLIxEXVzE2SAzIB0UxBfcFoHrzjzf9euB6ART2VDE8c",
@@ -31,5 +35,8 @@ defs = Definitions(
         "references_resource": SingleSheetResource(sheets=sheets, gid="81596307"),
         "data_resource": SingleSheetResource(sheets=sheets, gid="2123069643"),
         "comments_resource": SingleSheetResource(sheets=sheets, gid="1475422539"),
+        "pandas_io_manager": PandasArrowIOManager(
+            base_path=UPath(f"{os.getenv('DAGSTER_HOME', '.')}/storage")
+        ),
     },
 )
