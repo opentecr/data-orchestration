@@ -46,7 +46,7 @@ class MetaNetXResource(ConfigurableResource):
         str,
         Field(
             default=".",
-            description="The base path where to store table files.",
+            description="The base path where to store downloaded files.",
         ),
     ]
 
