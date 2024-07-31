@@ -20,23 +20,29 @@ import os
 from dagster import Definitions, load_assets_from_modules
 from upath import UPath
 
-from . import assets
-from .assets import GoogleSheetsResource, SingleSheetResource
-from .io import PandasArrowIOManager
-
-sheets = GoogleSheetsResource(
-    spreadsheet_id="1jLIxEXVzE2SAzIB0UxBfcFoHrzjzf9euB6ART2VDE8c",
-)
+from .opentecr import asset as opentecr_assets
+from .opentecr.resource import GoogleSheetsResource
+from .io import PandasArrowIOManager, PolarsArrowIOManager
+from .metanetx.resource import MetaNetXResource
+from .metanetx import asset as metanetx_assets
 
 defs = Definitions(
-    assets=load_assets_from_modules([assets], group_name="openTECR"),
+    assets=[
+        *load_assets_from_modules([opentecr_assets], group_name="openTECR"),
+        *load_assets_from_modules([metanetx_assets], group_name="MetaNetX"),
+    ],
     resources={
-        "metadata_resource": SingleSheetResource(sheets=sheets, gid="652907302"),
-        "references_resource": SingleSheetResource(sheets=sheets, gid="81596307"),
-        "data_resource": SingleSheetResource(sheets=sheets, gid="2123069643"),
-        "comments_resource": SingleSheetResource(sheets=sheets, gid="1475422539"),
+        "google_sheets_resource": GoogleSheetsResource(
+            spreadsheet_id="1jLIxEXVzE2SAzIB0UxBfcFoHrzjzf9euB6ART2VDE8c",
+        ),
+        "metanetx_resource": MetaNetXResource(
+            base_path=str(UPath(os.getenv("DAGSTER_HOME", ".")) / "storage"),
+        ),
         "pandas_io_manager": PandasArrowIOManager(
-            base_path=UPath(f"{os.getenv('DAGSTER_HOME', '.')}/storage")
+            base_path=UPath(os.getenv("DAGSTER_HOME", ".")) / "storage",
+        ),
+        "polars_io_manager": PolarsArrowIOManager(
+            base_path=UPath(os.getenv("DAGSTER_HOME", ".")) / "storage",
         ),
     },
 )

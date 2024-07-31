@@ -16,21 +16,21 @@
 """Provide an I/O manager for pandas DataFrames stored in arrow format."""
 
 from dagster import InputContext, OutputContext, UPathIOManager
-from pandas import DataFrame, read_feather
+from polars import DataFrame, read_ipc
 from upath import UPath
 
 
-class PandasArrowIOManager(UPathIOManager):
-    """Define the I/O manager for pandas DataFrames stored in arrow format."""
+class PolarsArrowIOManager(UPathIOManager):
+    """Define the I/O manager for polars DataFrames stored in arrow format."""
 
     extension = ".arrow"
 
     def dump_to_path(
         self, context: OutputContext, obj: DataFrame, path: UPath
     ) -> None:
-        """Store a pandas DataFrame output in an Apache Arrow file."""
-        obj.to_feather(path, compression="zstd")
+        """Store a polars DataFrame output in an Apache Arrow file."""
+        obj.write_ipc(path, compression="zstd")
 
     def load_from_path(self, context: InputContext, path: UPath) -> DataFrame:
-        """Load a pandas DataFrame input from an Apache Arrow file."""
-        return read_feather(path)
+        """Load a polars DataFrame input from an Apache Arrow file."""
+        return read_ipc(path)

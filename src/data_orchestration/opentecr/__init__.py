@@ -13,8 +13,4 @@
 # the License.
 
 
-"""Provide custom input/output managers."""
-
-
-from .pandas_arrow_io_manager import PandasArrowIOManager
-from .polars_arrow_io_manager import PolarsArrowIOManager
+"""Provide dagster assets."""

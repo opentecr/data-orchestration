@@ -13,7 +13,4 @@
 # the License.
 
 
-"""Provide dagster assets."""
-
-
-from .opentecr import *
+"""Provide ops, jobs, and assets related to MetaNetX."""
