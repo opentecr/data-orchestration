@@ -15,8 +15,6 @@ of the `Primary Curation` of information by Goldberg _et al._ (2016).
 erDiagram
     Measurement {
     }
-    Condition {
-    }
     Reaction {
     }
     Table {
@@ -26,10 +24,8 @@ erDiagram
     Reference {
     }
 
-    Measurement }|--|| Condition: "measured in"
     Measurement }|--|| Reaction: "quantifies"
     Measurement }|--|| Table: "curated from"
-    Condition ||--|| Table: "described in"
     Table }|--|| primary: "published in"
     Reaction ||--|{ Table: "subject of"
     primary ||--|{ Reference: "curated from"
@@ -41,17 +37,17 @@ relationships. Below, we describe all entities and their attributes.
 ```mermaid
 erDiagram
     Measurement {
-        Optional[str] w3id
         int entry_index
         float k_prime
-    }
-    Condition {
         float temperature
         Optional[float] ionic_strength
         Optional[float] hydrogen_potential
         Optional[float] magnesium_potential
         Optional[str] method
         Optional[str] buffer
+    }
+    W3ID {
+        str accession
     }
     id["MIRIAM Identifier"] {
         str source
@@ -79,13 +75,11 @@ erDiagram
         str reference_code
         Optional[int] pmid
         Optional[str] doi
-        Optional[str] comment
     }
 
-    Measurement }|--|| Condition: "measured in"
+    Measurement ||--o| W3ID: "identified by"
     Measurement }|--|| Reaction: "quantifies"
     Measurement }|--|| Table: "curated from"
-    Condition ||--|| Table: "described in"
     Table }|--|| primary: "published in"
     Reaction ||--|{ Table: "subject of"
     Reaction }|--|{ Metabolite: "contains"
