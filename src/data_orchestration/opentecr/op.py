@@ -5,10 +5,10 @@ import pandera as pa
 from dagster import MetadataValue, OpExecutionContext, Out, Output, graph, op
 from upath import UPath
 
-from data_orchestration.helpers import pandas_metadata
+from data_orchestration.helpers import ValidationModelConfig, pandas_metadata
 
 from . import types
-from .config import GoogleSheetConfig, ValidationModelConfig
+from .config import GoogleSheetConfig
 from .resource import GoogleSheetsResource
 
 
@@ -34,6 +34,7 @@ def validate_transform_sheet(
 ) -> Output[pd.DataFrame]:
     """Validate table contents and return rows conforming with the schema."""
     table = pd.read_excel(excel, engine="openpyxl")
+
     model = getattr(types, config.model)
     try:
         result = model.validate(table, lazy=True)
@@ -47,6 +48,7 @@ def validate_transform_sheet(
             exc.data,
         )
         result = table.loc[~table.index.isin(exc.data.index), :].copy()
+
     return Output(
         value=result,
         metadata=pandas_metadata(result),
