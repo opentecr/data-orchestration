@@ -14,6 +14,9 @@ def pandas_metadata(df: pd.DataFrame) -> dict[str, Any]:
         "dagster/column_count": len(df.columns),
         "head": MetadataValue.md(df.head(n=5).astype(object).fillna("").to_markdown()),
         "tail": MetadataValue.md(df.tail(n=5).astype(object).fillna("").to_markdown()),
+        "summary": MetadataValue.md(
+            df.describe(include="all").astype(object).fillna("").to_markdown()
+        ),
     }
 
 

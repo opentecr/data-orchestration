@@ -27,7 +27,7 @@ def fetch_sheet(
 
 
 @op(out=Out(io_manager_key="pandas_io_manager"))
-def validate_sheet(
+def validate_transform_sheet(
     context: OpExecutionContext,
     config: ValidationModelConfig,
     excel: UPath,
@@ -56,4 +56,4 @@ def validate_sheet(
 @graph
 def opentecr_table() -> pd.DataFrame:
     """Define the graph of operations to retrieve a table."""
-    return validate_sheet(fetch_sheet())
+    return validate_transform_sheet(fetch_sheet())

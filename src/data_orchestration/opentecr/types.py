@@ -152,7 +152,7 @@ class OpenTECRData(BaseModel):
         alias="p_mg",
         nullable=True,
     )
-    k_prime: Series[float] = pa.Field(
+    apparent_equilibrium: Series[float] = pa.Field(
         description="The apparent equilibrium constant of the reaction [K'].",
         alias="K_prime",
         nullable=True,
@@ -171,17 +171,13 @@ class OpenTECRReference(BaseModel):
     reference_code: Series[str] = pa.Field(
         description="Code used to reference the publication source.",
     )
-    pmid: Series[Int64Dtype] = pa.Field(
+    pmid: Series[str] = pa.Field(
         description="The PubMed identifier (PMID), if any.",
         nullable=True,
         coerce=True,
     )
     doi: Series[str] = pa.Field(
         description="The digital object identifier (DOI), if any.",
-        nullable=True,
-    )
-    comment: Series[str] = pa.Field(
-        description="Comment by the curator.",
         nullable=True,
     )
 
