@@ -16,64 +16,71 @@
 """Provide dagster assets."""
 
 from dagster import graph_asset
-from pandas import DataFrame
 
 from .op import opentecr_table
 from .types import (
-    OpenTECRData,
     OpenTECRDataDT,
-    OpenTECRReference,
     OpenTECRReferenceDT,
-    OpenTECRTableComment,
     OpenTECRTableCommentDT,
-    OpenTECRTableMetadata,
     OpenTECRTableMetadataDT,
 )
 
 
-# def opentecr_metadata() -> OpenTECRTableMetadataDT:
 @graph_asset(
     config={
-        "opentecr_table": {"ops": {"fetch_sheet": {"config": {"gid": "652907302"}}}},
+        "opentecr_table": {
+            "ops": {
+                "fetch_sheet": {"config": {"gid": "652907302"}},
+                "validate_sheet": {"config": {"model": "OpenTECRTableMetadata"}},
+            },
+        },
     },
 )
-def opentecr_metadata() -> DataFrame:
+def opentecr_metadata() -> OpenTECRTableMetadataDT:
     """Define the openTECR metadata asset."""
-    # return OpenTECRTableMetadata.validate(opentecr_table())
     return opentecr_table()
 
 
-# def opentecr_references() -> OpenTECRReferenceDT:
 @graph_asset(
     config={
-        "opentecr_table": {"ops": {"fetch_sheet": {"config": {"gid": "81596307"}}}},
+        "opentecr_table": {
+            "ops": {
+                "fetch_sheet": {"config": {"gid": "81596307"}},
+                "validate_sheet": {"config": {"model": "OpenTECRReference"}},
+            },
+        },
     },
 )
-def opentecr_references() -> DataFrame:
+def opentecr_references() -> OpenTECRReferenceDT:
     """Define the openTECR references asset."""
-    # return OpenTECRReference.validate(opentecr_table())
     return opentecr_table()
 
 
-# def opentecr_data() -> OpenTECRDataDT:
 @graph_asset(
     config={
-        "opentecr_table": {"ops": {"fetch_sheet": {"config": {"gid": "2123069643"}}}},
+        "opentecr_table": {
+            "ops": {
+                "fetch_sheet": {"config": {"gid": "2123069643"}},
+                "validate_sheet": {"config": {"model": "OpenTECRData"}},
+            },
+        },
     },
 )
-def opentecr_data() -> DataFrame:
+def opentecr_data() -> OpenTECRDataDT:
     """Define the openTECR data asset."""
-    # return OpenTECRData.validate(opentecr_table())
     return opentecr_table()
 
 
-# def opentecr_comments() -> OpenTECRTableCommentDT:
 @graph_asset(
     config={
-        "opentecr_table": {"ops": {"fetch_sheet": {"config": {"gid": "1475422539"}}}},
+        "opentecr_table": {
+            "ops": {
+                "fetch_sheet": {"config": {"gid": "1475422539"}},
+                "validate_sheet": {"config": {"model": "OpenTECRTableComment"}},
+            },
+        },
     },
 )
-def opentecr_comments() -> DataFrame:
+def opentecr_comments() -> OpenTECRTableCommentDT:
     """Define the openTECR comments asset."""
-    # return OpenTECRTableComment.validate(opentecr_table())
     return opentecr_table()

@@ -1,9 +1,10 @@
 from typing import Annotated
 from urllib.parse import urlencode
 
-import pandas as pd
+import httpx
 from dagster import ConfigurableResource
 from pydantic import Field
+from upath import UPath
 
 
 class GoogleSheetsResource(ConfigurableResource):
@@ -19,8 +20,15 @@ class GoogleSheetsResource(ConfigurableResource):
     spreadsheet_id: Annotated[
         str,
         Field(
-            default=...,
+            default="1jLIxEXVzE2SAzIB0UxBfcFoHrzjzf9euB6ART2VDE8c",
             description="The Google Sheets spreadsheet ID.",
+        ),
+    ]
+    base_path: Annotated[
+        str,
+        Field(
+            default=".",
+            description="The base path where to store Excel files.",
         ),
     ]
 
@@ -29,6 +37,22 @@ class GoogleSheetsResource(ConfigurableResource):
         params = urlencode({"gid": gid, "format": "xlsx"})
         return f"{self.base_url}/{self.spreadsheet_id}/export?{params}"
 
-    def fetch(self, gid: str) -> pd.DataFrame:
-        """Fetch a single Google sheet."""
-        return pd.read_excel(self.url(gid=gid), engine="openpyxl")
+    def _fetch_excel(self, client: httpx.Client, gid: str) -> UPath:
+        """Fetch a single Google sheet as Excel and return its file path."""
+        result = UPath(self.base_path) / f"{gid}.xlsx"
+
+        with (
+            client.stream(
+                method="GET", url=self.url(gid=gid), follow_redirects=True
+            ) as response,
+            result.open(mode="wb") as handle,
+        ):
+            response.raise_for_status()
+            for data in response.iter_bytes():
+                handle.write(data)
+        return result
+
+    def fetch(self, gid: str) -> UPath:
+        """Fetch a single Google sheet as Excel and return its file path."""
+        with httpx.Client() as client:
+            return self._fetch_excel(client=client, gid=gid)

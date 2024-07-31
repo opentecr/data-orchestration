@@ -33,7 +33,7 @@ defs = Definitions(
     ],
     resources={
         "google_sheets_resource": GoogleSheetsResource(
-            spreadsheet_id="1jLIxEXVzE2SAzIB0UxBfcFoHrzjzf9euB6ART2VDE8c",
+            base_path=str(UPath(os.getenv("DAGSTER_HOME", ".")) / "storage"),
         ),
         "metanetx_resource": MetaNetXResource(
             base_path=str(UPath(os.getenv("DAGSTER_HOME", ".")) / "storage"),

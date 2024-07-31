@@ -1,30 +1,59 @@
+import json
+
 import pandas as pd
-from dagster import MetadataValue, Out, Output, graph, op
+import pandera as pa
+from dagster import MetadataValue, OpExecutionContext, Out, Output, graph, op
+from upath import UPath
 
 from data_orchestration.helpers import pandas_metadata
 
-from .config import GoogleSheetConfig
+from . import types
+from .config import GoogleSheetConfig, ValidationModelConfig
 from .resource import GoogleSheetsResource
 
 
-# @op(out=Out(io_manager_key="pandas_io_manager"))
 @op
 def fetch_sheet(
     google_sheets_resource: GoogleSheetsResource,
     config: GoogleSheetConfig,
-) -> Output[pd.DataFrame]:
-    """Fetch a Google sheet."""
-    result = google_sheets_resource.fetch(gid=config.gid)
+) -> Output[UPath]:
+    """Fetch a Google sheet as Excel file and store it locally."""
     return Output(
-        value=result,
+        value=google_sheets_resource.fetch(gid=config.gid),
         metadata={
-            **pandas_metadata(result),
             "source": MetadataValue.url(google_sheets_resource.url(gid=config.gid)),
         },
+    )
+
+
+@op(out=Out(io_manager_key="pandas_io_manager"))
+def validate_sheet(
+    context: OpExecutionContext,
+    config: ValidationModelConfig,
+    excel: UPath,
+) -> Output[pd.DataFrame]:
+    """Validate table contents and return rows conforming with the schema."""
+    table = pd.read_excel(excel, engine="openpyxl")
+    model = getattr(types, config.model)
+    try:
+        result = model.validate(table, lazy=True)
+    except pa.errors.SchemaErrors as exc:
+        context.log.error(  # noqa: TRY400
+            "Schema errors:\n\n%s",
+            json.dumps(exc.message, indent=2),
+        )
+        context.log.error(  # noqa: TRY400
+            "Offending rows:\n\n%s",
+            exc.data,
+        )
+        result = table.loc[~table.index.isin(exc.data.index), :].copy()
+    return Output(
+        value=result,
+        metadata=pandas_metadata(result),
     )
 
 
 @graph
 def opentecr_table() -> pd.DataFrame:
     """Define the graph of operations to retrieve a table."""
-    return fetch_sheet()
+    return validate_sheet(fetch_sheet())
