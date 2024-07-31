@@ -100,7 +100,7 @@ def opentecr_table_comments() -> OpenTECRTableCommentDT:
     return opentecr_table()
 
 
-@asset(tags={"layer": "silver"})
+@asset(io_manager_key="pandas_io_manager", tags={"layer": "silver"})
 def opentecr_clean_comments(
     opentecr_table_comments: OpenTECRTableCommentDT,
 ) -> Output[DataFrame]:
@@ -125,7 +125,7 @@ def opentecr_clean_comments(
     )
 
 
-@asset(tags={"layer": "silver"})
+@asset(io_manager_key="pandas_io_manager", tags={"layer": "silver"})
 def opentecr_clean_metadata(
     opentecr_table_metadata: OpenTECRTableMetadataDT,
 ) -> Output[DataFrame]:
@@ -151,7 +151,7 @@ def opentecr_clean_metadata(
     )
 
 
-@asset(tags={"layer": "silver"})
+@asset(io_manager_key="pandas_io_manager", tags={"layer": "silver"})
 def opentecr_table_info(
     opentecr_clean_comments: DataFrame,
     opentecr_clean_metadata: DataFrame,
@@ -180,7 +180,7 @@ def opentecr_table_info(
     )
 
 
-@asset(tags={"layer": "silver"})
+@asset(io_manager_key="pandas_io_manager", tags={"layer": "silver"})
 def opentecr_clean_data(
     opentecr_data: OpenTECRDataDT,
 ) -> Output[DataFrame]:
@@ -214,7 +214,7 @@ def opentecr_clean_data(
     )
 
 
-@asset(tags={"layer": "gold"})
+@asset(io_manager_key="pandas_io_manager", tags={"layer": "gold"})
 def opentecr_denormalized(
     opentecr_clean_data: DataFrame,
     opentecr_table_info: DataFrame,
