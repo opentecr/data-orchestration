@@ -72,22 +72,29 @@ class MetaNetXChemicalProperty(BaseModel):
         description="The reference compound, i.e., a compound selected in an external resource that best represents this entry [REFERENCE]."
     )
     formula: Series[str] = pa.Field(
-        description="The formula of the compound [STRING]."
+        description="The formula of the compound [STRING].",
+        nullable=True,
     )
-    charge: Series[int] = pa.Field(
-        description="The charge of the compound [INTEGER]."
+    charge: Series[Int64Dtype] = pa.Field(
+        description="The charge of the compound [INTEGER].",
+        nullable=True,
+        coerce=True,
     )
     mass: Series[float] = pa.Field(
-        description="The mass of the compound [REAL]."
+        description="The mass of the compound [REAL].",
+        nullable=True,
     )
     inchi: Series[str] = pa.Field(
-        description="The standard InChI of the compound [STRING]."
+        description="The standard InChI of the compound [STRING].",
+        nullable=True,
     )
     inchi_key: Series[str] = pa.Field(
-        description="The standard InChIKey of the compound [STRING]."
+        description="The standard InChIKey of the compound [STRING].",
+        nullable=True,
     )
     smiles: Series[str] = pa.Field(
-        description="The SMILES representation of the compound [STRING]."
+        description="The SMILES representation of the compound [STRING].",
+        nullable=True,
     )
 
 
@@ -132,7 +139,8 @@ class MetaNetXReactionProperty(BaseModel):
         description="The original best resource from where this reaction comes from [REFERENCE]."
     )
     ec_number: Series[str] = pa.Field(
-        description="The EC number(s) associated with this reaction [STRING]."
+        description="The EC number(s) associated with this reaction [STRING].",
+        nullable=True,
     )
     is_balanced: Series[bool] = pa.Field(
         description="Whether the equation is balanced with respect to elemental composition and charge [BOOLEAN].",

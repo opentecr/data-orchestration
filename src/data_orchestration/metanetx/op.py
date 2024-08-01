@@ -5,13 +5,12 @@ from upath import UPath
 from zstandard import ZstdDecompressor
 
 from data_orchestration.helpers import (
-    ValidationModelConfig,
     pandas_metadata,
     validate_pandas_table,
 )
 
 from . import types
-from .config import MetaNetXTableConfig
+from .config import MetaNetXTableConfig, MetaNetXValidationConfig
 from .resource import MetaNetXResource
 
 
@@ -30,7 +29,7 @@ def fetch_table(
 @op(out=Out(io_manager_key="pandas_io_manager"))
 def etl_table(
     context: OpExecutionContext,
-    config: ValidationModelConfig,
+    config: MetaNetXValidationConfig,
     path: UPath,
 ) -> Output[pd.DataFrame]:
     """ETL a MetaNetX table."""
@@ -45,9 +44,9 @@ def etl_table(
                 separator="\t",
                 comment_prefix="#",
             ).to_pandas()
+            table.columns = config.columns
         except pl.exceptions.NoDataError:
-            table = pd.DataFrame()
-    # TODO: Set column names from config.
+            table = pd.DataFrame(columns=config.columns)
 
     result = validate_pandas_table(
         table=table,

@@ -11,7 +11,12 @@ from .op import mnx_table
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "comp_depr.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXDeprecation"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXDeprecation",
+                        "columns": ["deprecated_id", "replacement_id", "version"],
+                    },
+                },
             },
         },
     },
@@ -27,7 +32,12 @@ def mnx_comp_depr() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "comp_prop.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXCompartmentProperty"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXCompartmentProperty",
+                        "columns": ["mnx_id", "name", "reference"],
+                    },
+                },
             },
         },
     },
@@ -43,7 +53,12 @@ def mnx_comp_prop() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "comp_xref.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXCrossReference"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXCrossReference",
+                        "columns": ["external_id", "mnx_id", "description"],
+                    },
+                },
             },
         },
     },
@@ -59,7 +74,12 @@ def mnx_comp_xref() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "chem_depr.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXDeprecation"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXDeprecation",
+                        "columns": ["deprecated_id", "replacement_id", "version"],
+                    },
+                },
             },
         },
     },
@@ -75,7 +95,12 @@ def mnx_chem_depr() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "chem_isom.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXStereochemistry"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXStereochemistry",
+                        "columns": ["parent_id", "child_id", "relation"],
+                    },
+                },
             },
         },
     },
@@ -91,7 +116,22 @@ def mnx_chem_isom() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "chem_prop.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXChemicalProperty"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXChemicalProperty",
+                        "columns": [
+                            "mnx_id",
+                            "name",
+                            "reference",
+                            "formula",
+                            "charge",
+                            "mass",
+                            "inchi",
+                            "inchi_key",
+                            "smiles",
+                        ],
+                    },
+                },
             },
         },
     },
@@ -107,7 +147,12 @@ def mnx_chem_prop() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "chem_xref.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXCrossReference"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXCrossReference",
+                        "columns": ["external_id", "mnx_id", "description"],
+                    },
+                },
             },
         },
     },
@@ -123,7 +168,12 @@ def mnx_chem_xref() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "reac_depr.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXDeprecation"}},
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXDeprecation",
+                        "columns": ["deprecated_id", "replacement_id", "version"],
+                    },
+                },
             },
         },
     },
@@ -139,8 +189,20 @@ def mnx_reac_depr() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "reac_prop.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXReactionProperty"}},
-            }
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXReactionProperty",
+                        "columns": [
+                            "mnx_id",
+                            "equation",
+                            "reference",
+                            "ec_number",
+                            "is_balanced",
+                            "is_transport",
+                        ],
+                    },
+                },
+            },
         },
     },
     tags={"layer": "bronze"},
@@ -155,8 +217,13 @@ def mnx_reac_prop() -> DataFrame:
         "mnx_table": {
             "ops": {
                 "fetch_table": {"config": {"table": "reac_xref.tsv"}},
-                "etl_table": {"config": {"model": "MetaNetXCrossReference"}},
-            }
+                "etl_table": {
+                    "config": {
+                        "model": "MetaNetXCrossReference",
+                        "columns": ["external_id", "mnx_id", "description"],
+                    }
+                },
+            },
         },
     },
     tags={"layer": "bronze"},
