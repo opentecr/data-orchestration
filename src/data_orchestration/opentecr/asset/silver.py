@@ -13,15 +13,16 @@
 # the License.
 
 
-"""Provide dagster assets."""
+"""Provide openTECR silver layer assets."""
 
-from dagster import Output, asset, graph_asset
+from hashlib import blake2b
+
+from dagster import Output, asset
 from pandas import DataFrame
 
 from data_orchestration.helpers import pandas_metadata
-
-from .op import opentecr_table
-from .types import (
+from data_orchestration.opentecr.helpers import transform_compound_name
+from data_orchestration.opentecr.types import (
     OpenTECRData,
     OpenTECRDataDT,
     OpenTECRReferenceDT,
@@ -30,74 +31,6 @@ from .types import (
     OpenTECRTableMetadata,
     OpenTECRTableMetadataDT,
 )
-
-
-@graph_asset(
-    config={
-        "opentecr_table": {
-            "ops": {
-                "fetch_sheet": {"config": {"gid": "652907302"}},
-                "validate_transform_sheet": {
-                    "config": {"model": "OpenTECRTableMetadata"},
-                },
-            },
-        },
-    },
-    tags={"layer": "bronze"},
-)
-def opentecr_table_metadata() -> OpenTECRTableMetadataDT:
-    """Define the openTECR table metadata asset."""
-    return opentecr_table()
-
-
-@graph_asset(
-    config={
-        "opentecr_table": {
-            "ops": {
-                "fetch_sheet": {"config": {"gid": "81596307"}},
-                "validate_transform_sheet": {"config": {"model": "OpenTECRReference"}},
-            },
-        },
-    },
-    tags={"layer": "bronze"},
-)
-def opentecr_references() -> OpenTECRReferenceDT:
-    """Define the openTECR references asset."""
-    return opentecr_table()
-
-
-@graph_asset(
-    config={
-        "opentecr_table": {
-            "ops": {
-                "fetch_sheet": {"config": {"gid": "2123069643"}},
-                "validate_transform_sheet": {"config": {"model": "OpenTECRData"}},
-            },
-        },
-    },
-    tags={"layer": "bronze"},
-)
-def opentecr_data() -> OpenTECRDataDT:
-    """Define the openTECR data asset."""
-    return opentecr_table()
-
-
-@graph_asset(
-    config={
-        "opentecr_table": {
-            "ops": {
-                "fetch_sheet": {"config": {"gid": "1475422539"}},
-                "validate_transform_sheet": {
-                    "config": {"model": "OpenTECRTableComment"},
-                },
-            },
-        },
-    },
-    tags={"layer": "bronze"},
-)
-def opentecr_table_comments() -> OpenTECRTableCommentDT:
-    """Define the openTECR table comments asset."""
-    return opentecr_table()
 
 
 @asset(io_manager_key="pandas_io_manager", tags={"layer": "silver"})
@@ -141,6 +74,7 @@ def opentecr_clean_metadata(
         .assign(
             method=lambda df: df["method"].str.replace("-", ""),
             buffer=lambda df: df["buffer"].str.replace("-", "").str.replace("none", ""),
+            reaction=lambda df: df["reaction"].str.strip(),
             # TODO: Remove '1' from secondary_comment column.
         )
         .set_index(["part", "page", "column", "table_index"], verify_integrity=True)
@@ -214,17 +148,76 @@ def opentecr_clean_data(
     )
 
 
-@asset(io_manager_key="pandas_io_manager", tags={"layer": "gold"})
-def opentecr_denormalized(
-    opentecr_clean_data: DataFrame,
-    opentecr_table_info: DataFrame,
-) -> Output[DataFrame]:
-    """Join the openTECR clean data with the table information."""
-    result = opentecr_clean_data.join(opentecr_table_info, validate="m:1").set_index(
-        "entry_index", append=True, verify_integrity=True,
+@asset(io_manager_key="pandas_io_manager", tags={"layer": "silver"})
+def opentecr_unique_reactions(opentecr_clean_metadata: DataFrame) -> Output[DataFrame]:
+    """Extract the reactions from the openTECR table metadata."""
+    result = (
+        opentecr_clean_metadata.loc[:, ["reaction"]]
+        .drop_duplicates(subset="reaction", ignore_index=True)
+        .assign(
+            reaction_hash=lambda df: df["reaction"]
+            .map(
+                lambda rxn: blake2b(rxn.encode(), digest_size=20).hexdigest(),
+            )
+            .reset_index(drop=True),
+        )
+    )
+    return Output(
+        value=result,
+        metadata=pandas_metadata(result),
     )
 
-    assert len(result) == len(opentecr_clean_data)
+
+@asset(io_manager_key="pandas_io_manager", tags={"layer": "silver"})
+def opentecr_compounds(opentecr_unique_reactions: DataFrame) -> Output[DataFrame]:
+    """Extract individual compounds from the unique reactions."""
+    # Split reaction equations into reactants and products.
+    compounds = (
+        opentecr_unique_reactions["reaction"]
+        .str.split(
+            "=",
+            n=1,
+            expand=True,
+            regex=False,
+        )
+        .rename(columns={0: "reactants", 1: "products"})
+    )
+
+    result = (
+        opentecr_unique_reactions.loc[:, ["reaction_hash"]]
+        # Split the reactants and products into individual compounds.
+        .assign(
+            reaction_hash=lambda df: df["reaction_hash"].astype("category"),
+            reactant=compounds["reactants"].map(
+                lambda lhs: [
+                    transform_compound_name(name) for name in lhs.split(" + ")
+                ],
+                na_action="ignore",
+            ),
+            product=compounds["products"].map(
+                lambda rhs: [
+                    transform_compound_name(name) for name in rhs.split(" + ")
+                ],
+                na_action="ignore",
+            ),
+        )
+        # Use the reactant and product columns as a new variable column 'reaction_side'
+        # and insert their respective elements into a new value column 'compound'.
+        .melt(
+            id_vars=["reaction_hash"],
+            value_vars=["reactant", "product"],
+            var_name="reaction_side",
+            value_name="compound",
+        )
+        .assign(reaction_side=lambda df: df["reaction_side"].astype("category"))
+        # Spread the compounds lists to separate rows.
+        .explode("compound", ignore_index=True)
+        .assign(compound=lambda df: df["compound"].astype("category"))
+        # Sort in descending order such that reactants appear before products.
+        .sort_values(
+            by=["reaction_hash", "reaction_side"], ascending=False, ignore_index=True
+        )
+    )
 
     return Output(
         value=result,
