@@ -83,7 +83,7 @@ erDiagram
     Table }|--|| primary: "published in"
     Reaction ||--|{ Table: "subject of"
     Reaction }|--|{ Metabolite: "contains"
-    Reaction ||--|{ id: "has"
-    Metabolite ||--|{ id: "has"
+    Reaction ||--o{ id: "has"
+    Metabolite ||--o{ id: "has"
     primary ||--|{ Reference: "curated from"
 ```
