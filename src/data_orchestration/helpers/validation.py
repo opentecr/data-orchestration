@@ -18,10 +18,11 @@ def validate_pandas_table(
             "Schema errors:\n\n%s",
             json.dumps(exc.message, indent=2),
         )
-        context.log.error(  # noqa: TRY400
-            "Offending rows:\n\n%s",
-            exc.data,
-        )
+        with pd.option_context("display.max_rows", 20, "display.max_columns", None):
+            context.log.error(  # noqa: TRY400
+                "Offending rows:\n\n%s",
+                str(exc.data),
+            )
         result = table.loc[~table.index.isin(exc.data.index), :].copy()
 
     return result
