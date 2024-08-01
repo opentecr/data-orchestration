@@ -209,6 +209,7 @@ def opentecr_compounds(opentecr_unique_reactions: DataFrame) -> Output[DataFrame
             var_name="reaction_side",
             value_name="compound",
         )
+        .dropna(subset="compound", ignore_index=True)
         .assign(reaction_side=lambda df: df["reaction_side"].astype("category"))
         # Spread the compounds lists to separate rows.
         .explode("compound", ignore_index=True)
