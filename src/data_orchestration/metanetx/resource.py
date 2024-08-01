@@ -122,6 +122,6 @@ class MetaNetXResource(ConfigurableResource):
 
     def fetch(self, table: str) -> UPath:
         """Fetch the configured table."""
-        with httpx.Client() as client:
+        with httpx.Client(timeout=httpx.Timeout(10.0, read=30.0, pool=None)) as client:
             expected_md5 = self._fetch_md5(client, table)
             return self._fetch_table(client, table, expected_md5)

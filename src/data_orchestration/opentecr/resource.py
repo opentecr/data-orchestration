@@ -43,7 +43,9 @@ class GoogleSheetsResource(ConfigurableResource):
 
         with (
             client.stream(
-                method="GET", url=self.url(gid=gid), follow_redirects=True
+                method="GET",
+                url=self.url(gid=gid),
+                follow_redirects=True,
             ) as response,
             result.open(mode="wb") as handle,
         ):
@@ -54,5 +56,5 @@ class GoogleSheetsResource(ConfigurableResource):
 
     def fetch(self, gid: str) -> UPath:
         """Fetch a single Google sheet as Excel and return its file path."""
-        with httpx.Client() as client:
+        with httpx.Client(timeout=httpx.Timeout(10.0, read=30.0, pool=None)) as client:
             return self._fetch_excel(client=client, gid=gid)
